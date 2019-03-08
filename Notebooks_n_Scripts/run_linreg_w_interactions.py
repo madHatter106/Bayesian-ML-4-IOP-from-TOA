@@ -47,10 +47,17 @@ if __name__ == "__main__":
         hshoe_wi_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))
         ppc_train_ = hshoe_wi_.predict(likelihood_name='likelihood')
+        waic_train = hshoe_.get_waic()
+        loo_train = hshoe_.get_loo()
+        model = deepcopy(hshoe_.model)
+        trace = deepcopy(hshoe_.trace)
+        run_dict = dict(model=model, trace=trace,
+                        ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         X_shared.set_value(X_s_test_w_int.values)
-        ppc_test_ = hshoe_wi_.predict(likelihood_name='likelihood')
-        run_dict = dict(model=hshoe_wi_.model, trace=hshoe_wi_.trace_,
-                        ppc_train=ppc_train_, ppc_test=ppc_test_)
+        ppc_test_ = hshoe_wi_.predict(likelihood_na
+        waic_test = hshoe_.get_waic()
+        loo_test = hshoe_.get_loo()
+        run_dict.update(dict(ppc_test=ppc_test_, waic_test=waic_test, loo_test=loo_test))
         model_dict[band] = run_dict
         with open('./pickleJar/Results/hshoe_wi_model_dict_%s.pkl' %DT.now(), 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)

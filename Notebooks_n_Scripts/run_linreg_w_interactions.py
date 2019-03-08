@@ -35,14 +35,14 @@ if __name__ == "__main__":
 
     # create theano shared variable
     X_shared = shared(X_s_train_w_int.values)
-
+    y_shared = shared(y_train['log10_aphy%d' % bands[0].values]
     # Fitting aphi411 model:
     # Instantiate PyMC3 model with bnn likelihood
     for band in bands:
         logger.info("processing aphi{band}", band=band)
         X_shared.set_value(X_s_train_w_int.values)
-        hshoe_wi_ = PyMCModel(hs_regression,
-                            X_shared, y_train['log10_aphy%d' %band] )
+        y_shared.set_value(y_train['log10_aphy%d' % band].values)
+        hshoe_wi_ = PyMCModel(hs_regression, X_shared, y_shared )
         hshoe_wi_.model.name = 'hshoe_wi_aphy%d' %band
         hshoe_wi_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))
@@ -54,6 +54,7 @@ if __name__ == "__main__":
         run_dict = dict(model_train=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         X_shared.set_value(X_s_test_w_int.values)
+        y_shared.set_value(y_test['log10_aphy%d' % band].values)
         model_test = deepcopy(hshoe_.model)
         ppc_test_ = hshoe_wi_.predict(likelihood_name='likelihood')
         waic_test = hshoe_.get_waic()

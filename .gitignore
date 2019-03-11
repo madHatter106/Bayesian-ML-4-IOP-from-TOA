@@ -18,3 +18,5 @@ FigJar/
 \.ipynb_checkpoints/
 
 __pycache__/
+
+PickleJar/Results/

@@ -6,6 +6,7 @@ dependencies:
   - ansimarkup=1.4.0=py_0
   - atk=2.25.90=hf2eb9ee_1001
   - attrs=19.1.0=py_0
+  - autopep8=1.4.3=py_0
   - backcall=0.1.0=py_0
   - better_exceptions_fork=0.2.1.post6=py_0
   - binutils_impl_linux-64=2.31.1=h6176602_1
@@ -13,9 +14,9 @@ dependencies:
   - blas=1.0=mkl
   - bleach=3.1.0=py_0
   - bzip2=1.0.6=h14c3975_1002
-  - ca-certificates=2018.11.29=ha4d7672_0
+  - ca-certificates=2019.3.9=hecc5488_0
   - cairo=1.14.12=h80bd089_1005
-  - certifi=2018.11.29=py37_1000
+  - certifi=2019.3.9=py37_0
   - colorama=0.4.1=py_0
   - cycler=0.10.0=py_1
   - dbus=1.13.2=h714fa37_1
@@ -100,6 +101,7 @@ dependencies:
   - prompt_toolkit=2.0.9=py_0
   - pthread-stubs=0.4=h14c3975_1001
   - ptyprocess=0.6.0=py37_1000
+  - pycodestyle=2.5.0=py_0
   - pygments=2.3.1=py_0
   - pygpu=0.7.6=py37h3010b51_1000
   - pymc3=3.6=py37_1000
@@ -148,3 +150,4 @@ dependencies:
   - xz=5.2.4=h14c3975_1001
   - zeromq=4.2.5=hf484d3e_1006
   - zlib=1.2.11=h14c3975_1004
+

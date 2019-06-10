@@ -12,7 +12,7 @@ from sklearn.preprocessing import PolynomialFeatures
 if __name__ == "__main__":
     logger.add("linreg_wi_{time}.log")
     # load datasets
-    with open('./pickleJar/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
+    with open('../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
         datadict = pickle.load(fb)
     X_s_train = datadict['x_train_s']
     y_train = datadict['y_train']
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # create theano shared variable
     X_shared = shared(X_s_train_w_int.values)
-    y_shared = shared(y_train['log10_aphy%d' % bands[0].values]
+    y_shared = shared(y_train['log10_aphy%d' % bands[0]].values)
     # Fitting aphi411 model:
     # Instantiate PyMC3 model with bnn likelihood
     for band in bands:
@@ -47,8 +47,8 @@ if __name__ == "__main__":
         hshoe_wi_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))
         ppc_train_ = hshoe_wi_.predict(likelihood_name='likelihood')
-        waic_train = hshoe_.get_waic()
-        loo_train = hshoe_.get_loo()
+        waic_train = hshoe_wi.get_waic()
+        loo_train = hshoe_wi.get_loo()
         model_train = deepcopy(hshoe_.model)
         trace = deepcopy(hshoe_.trace_)
         run_dict = dict(model_train=model, trace=trace,

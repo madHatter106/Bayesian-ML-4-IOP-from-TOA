@@ -1,4 +1,4 @@
-o"""Runs ARD BNN"""
+"""Runs ARD BNN"""
 
 import pickle
 from datetime import datetime as DT
@@ -17,9 +17,9 @@ def run_model():
     X_s_test = datadict['x_test_s']
     y_test = datadict['y_test']
 
-    bands = ct = dict.fromkeys(bands)
-    model_dict== DT.now()
-    time_stamp = 
+    bands = [411, 443, 490, 510, 555, 670]
+    model_dict = dict.fromkeys(bands)
+    time_stamp = DT.now()
     # create theano shared variable
     X_shared = shared(X_s_train.values)
     y_shared = shared(y_train.log10_aphy411.values)

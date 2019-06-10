@@ -56,7 +56,7 @@ class PyMCModel:
 
     def get_waic(self):
         return pm.waic(trace=self.trace_, model=self.model)
-    
+
     def get_loo(self):
         return pm.loo(trace=self.trace_, model=self.model)
 
@@ -241,8 +241,8 @@ def bayes_nn_model_ARD_1HL_halfNormal_hyperpriors(X, y_obs,
 
 def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, **kwargs):
     """See Piironen & Vehtari, 2017 (DOI: 10.1214/17-EJS1337SI)"""
-    X_ = pm.floatX(X)
-    Y_ = pm.floatX(y_obs)
+    X_ = X#pm.floatX(X)
+    Y_ = y_obs#pm.floatX(y_obs)
     n_features = X_.eval().shape[1]
     if tau_0 is None:
         m0 = n_features/2

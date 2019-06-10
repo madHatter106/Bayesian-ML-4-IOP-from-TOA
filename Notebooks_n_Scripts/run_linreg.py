@@ -38,11 +38,12 @@ def run_model():
         waic_train = hshoe_.get_waic()
         loo_train = hshoe_.get_loo()
         model = deepcopy(hshoe_.model)
-        trace = deepcopy(hshoe_.trace)
+        trace = deepcopy(hshoe_.trace_)
         run_dict = dict(model=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         # set shared variable to testing set
         X_shared.set_value(X_s_test.values)
+        y_shared.set_value(y_test['log10_aphy%d' % band].values)
         ppc_test_ = hshoe_.predict(likelihood_name='likelihood')
         waic_test = hshoe_.get_waic()
         loo_test = hshoe_.get_loo()

@@ -2,6 +2,7 @@
 
 import pickle
 from datetime import datetime as DT
+from copy import deepcopy
 from loguru import logger
 from theano import shared
 from pymc_models import PyMCModel

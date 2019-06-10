@@ -3,14 +3,15 @@
 import pickle
 from datetime import datetime as DT
 from loguru import logger
+from copy import deepcopy
 import pandas as pd
 from theano import shared
 from pymc_models import PyMCModel
 from pymc_models import hs_regression
 from sklearn.preprocessing import PolynomialFeatures
 
-if __name__ == "__main__":
-    logger.add("linreg_wi_{time}.log")
+
+def run_model():
     # load datasets
     with open('../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
         datadict = pickle.load(fb)
@@ -47,20 +48,26 @@ if __name__ == "__main__":
         hshoe_wi_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))
         ppc_train_ = hshoe_wi_.predict(likelihood_name='likelihood')
-        waic_train = hshoe_wi.get_waic()
-        loo_train = hshoe_wi.get_loo()
-        model_train = deepcopy(hshoe_.model)
-        trace = deepcopy(hshoe_.trace_)
-        run_dict = dict(model_train=model, trace=trace,
+        waic_train = hshoe_wi_.get_waic()
+        loo_train = hshoe_wi_.get_loo()
+        model = deepcopy(hshoe_wi_.model)
+        trace = deepcopy(hshoe_wi_.trace_)
+        run_dict = dict(model=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         X_shared.set_value(X_s_test_w_int.values)
         y_shared.set_value(y_test['log10_aphy%d' % band].values)
-        model_test = deepcopy(hshoe_.model)
+        model_test = deepcopy(hshoe_wi_.model)
         ppc_test_ = hshoe_wi_.predict(likelihood_name='likelihood')
-        waic_test = hshoe_.get_waic()
-        loo_test = hshoe_.get_loo()
+        waic_test = hshoe_wi_.get_waic()
+        loo_test = hshoe_wi_.get_loo()
         run_dict.update(dict(model_test=model_test, ppc_test=ppc_test_,
                              waic_test=waic_test, loo_test=loo_test))
         model_dict[band] = run_dict
-        with open('./pickleJar/Results/hshoe_wi_model_dict_%s.pkl' %DT.now(), 'wb') as fb:
+        with open('../PickleJar/Results/hshoe_wi_model_dict_%s.pkl' %DT.now(), 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+if __name__ == "__main__":
+    logger.add("linreg_wi_{time}.log")
+    run_model()
+    logger.info("done!")

@@ -9,6 +9,7 @@ from pymc_models import PyMCModel
 from pymc_models import hs_regression
 
 def run_model():
+# load datasets
     with open('../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
         datadict = pickle.load(fb)
     X_s_train = datadict['x_train_s']
@@ -58,4 +59,3 @@ if __name__ == "__main__":
     logger.add("linreg_{time}.log")
     run_model()
     logger.info("done!")
-    # load datasets

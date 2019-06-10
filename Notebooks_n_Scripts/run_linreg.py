@@ -22,15 +22,16 @@ def run_model():
 
     # create theano shared variable
     X_shared = shared(X_s_train.values)
-
+    y_shared = shared(y_train.log10_aphy411.values)
     # Fitting aphi411 model:
     # Instantiate PyMC3 model with bnn likelihood
     for band in bands:
         logger.info("processing aphi{band}", band=band)
         # set shared variable to training set
         X_shared.set_value(X_s_train.values)
+        y_shared.set_value(y_train['log10_aphy%d' % band].values)
         hshoe_ = PyMCModel(hs_regression,
-                            X_shared, y_train['log10_aphy%d' %band])
+                            X_shared, y_shared)
         hshoe_.model.name = 'hshoe_aphy%d' %band
         hshoe_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))

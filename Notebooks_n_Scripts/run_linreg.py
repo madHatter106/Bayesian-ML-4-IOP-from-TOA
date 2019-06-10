@@ -9,7 +9,7 @@ from pymc_models import PyMCModel
 from pymc_models import hs_regression
 
 def run_model():
-    with open('../PickleJar/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
+    with open('../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
         datadict = pickle.load(fb)
     X_s_train = datadict['x_train_s']
     y_train = datadict['y_train']

@@ -38,8 +38,8 @@ def run_model():
         ppc_train_ = bnn_.predict(likelihood_name='likelihood')
         waic_train = bnn_.get_waic()
         loo_tain = bnn_.get_loo()
-        model = deepcopy(hshoe_.model)
-        trace = deepcopy(hshoe_.trace_)
+        model = deepcopy(bnn_.model)
+        trace = deepcopy(bnn_.trace_)
         run_dict = dict(model=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         X_shared.set_value(X_s_test.values)

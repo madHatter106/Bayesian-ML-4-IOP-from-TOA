@@ -47,8 +47,8 @@ def run_model():
         X_shared.set_value(X_s_test.values)
         y_shared.set_value(y_test['log10_aphy%d' %band].values)
         ppc_test = bnn_.predict(likelihood_name='likelihood')
-        waic_test = bnn.get_waic()
-        loo_test = bnn.get_loo()
+        waic_test = bnn_.get_waic()
+        loo_test = bnn_.get_loo()
         run_dict.update(dict(ppc_test=ppc_test, waic_test=waic_test, loo_test=loo_test))
         logger.info("testing data archived")
         model_dict[band]=run_dict

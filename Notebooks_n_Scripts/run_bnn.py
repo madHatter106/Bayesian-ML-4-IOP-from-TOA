@@ -35,6 +35,7 @@ def run_model():
         bnn_.model.name = 'bnn_HL4_%d' %band
         bnn_.fit(n_samples=2000, cores=4, chains=4, tune=10000,
                     nuts_kwargs=dict(target_accept=0.95))
+        logger.info("fitting complete")
         ppc_train_ = bnn_.predict(likelihood_name='likelihood')
         waic_train = bnn_.get_waic()
         loo_train = bnn_.get_loo()
@@ -42,15 +43,20 @@ def run_model():
         trace = deepcopy(bnn_.trace_)
         run_dict = dict(model=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
+        logger.info("training data archived")
         X_shared.set_value(X_s_test.values)
         y_shared.set_value(y_test['log10_aphy%d' %band].values)
         ppc_test = bnn_.predict(likelihood_name='likelihood')
         waic_test = bnn.get_waic()
         loo_test = bnn.get_loo()
         run_dict.update(dict(ppc_test=ppc_test, waic_test=waic_test, loo_test=loo_test))
+        logger.info("testing data archived")
         model_dict[band]=run_dict
-        with open('../PickleJar/Results/bnn_model_dict_%s.pkl' %time_stamp, 'wb') as fb:
-            pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
+        try:
+            with open('../PickleJar/Results/bnn_model_dict_%s.pkl' %time_stamp, 'wb') as fb:
+                pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
+        except:
+            logger.error("something went wrong while saving")
 
 if __name__ == "__main__":
     logger.add("linreg_{time}.log")

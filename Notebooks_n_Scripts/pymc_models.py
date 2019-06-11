@@ -143,8 +143,6 @@ def bayes_nn_model_ARD_1HL_halfCauchy_hyperpriors(X, y_obs,
     PyMC3 model
     """
 
-    X = pm.floatX(X)
-    Y = pm.floatX(y_obs)
     if hasattr(X, 'name'):
         num_obs, num_feats = X.eval().shape
     else:
@@ -168,7 +166,6 @@ def bayes_nn_model_ARD_1HL_halfCauchy_hyperpriors(X, y_obs,
                                 #transform=pm.distributions.transforms.Ordered(),
                                 #testval=testvals,
                                 )
-
         w_i_1 = pm.Deterministic('wts_i_1', w_i_1_intrmd * hyp_wi1_sd)
         w_1_o = pm.Deterministic('wts_1_out', w_1_o_intrmd * hyp_w1o_sd)
         b_1 = pm.Normal('bias_1', mu=0, sd=hyp_bias_1_sd, shape=(n_hidden),
@@ -178,7 +175,8 @@ def bayes_nn_model_ARD_1HL_halfCauchy_hyperpriors(X, y_obs,
         out_act = tt.dot(lyr1_act, w_1_o) + b_o
 
         sd = pm.HalfCauchy('sd', beta=1)
-        output = pm.Normal(lklhd_name, mu=out_act, sd=sd, observed=Y)
+        output = pm.Normal(lklhd_name, mu=out_act, sd=sd, observed=y_obs)
+        model.name = 'bnn_ARD_1HL_hC_hyp'
     return model
 
 
@@ -235,14 +233,14 @@ def bayes_nn_model_ARD_1HL_halfNormal_hyperpriors(X, y_obs,
         out_act = pm.Deterministic('out_act', tt.dot(lyr1_act, w_1_o) + b_o)
 
         sd = pm.HalfCauchy('sd', beta=1)
-        output = pm.Normal(lklhd_name, mu=out_act, sd=sd, observed=Y)
+        output = pm.Normal(lklhd_name, mu=out_act, sd=sd, observed=y_obs)
+        model.name = 'bnn_ARD_1HL_hN_hyp'
     return model
 
 
 def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, **kwargs):
     """See Piironen & Vehtari, 2017 (DOI: 10.1214/17-EJS1337SI)"""
-    X_ = X#pm.floatX(X)
-    Y_ = y_obs#pm.floatX(y_obs)
+
     n_features = X_.eval().shape[1]
     if tau_0 is None:
         m0 = n_features/2
@@ -254,6 +252,7 @@ def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, 
         lamb_m = pm.HalfCauchy('lambda_m', beta=1)
 
     if regularized:
+        model.name = "regularized_hshoe_reg"
         slab_scale = kwargs.pop('slab_scale', 3)
         slab_scale_sq = slab_scale ** 2
         slab_df = kwargs.pop('slab_df', 8)
@@ -268,14 +267,15 @@ def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, 
                                                   )
             w = pm.Normal('w', mu=0, sd=tau*lamb_m_bar, shape=n_features)
     else:
+        model.name = "horseshoe_reg"
         with model:
             w = pm.Normal('w', mu=0, sd=tau*lamb_m, shape=n_features)
 
     with model:
             bias = pm.Laplace('bias', mu=0, b=sd_bias)
-            mu_ = tt.dot(X_, w) + bias
+            mu_ = tt.dot(X, w) + bias
             sig = pm.HalfCauchy('sigma', beta=5)
-            y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=Y_)
+            y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=y_obs)
     return model
 
 

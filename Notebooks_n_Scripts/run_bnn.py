@@ -37,17 +37,17 @@ def run_model():
                     nuts_kwargs=dict(target_accept=0.95))
         ppc_train_ = bnn_.predict(likelihood_name='likelihood')
         waic_train = bnn_.get_waic()
-        loo_tain = bnn_.get_loo()
+        loo_train = bnn_.get_loo()
         model = deepcopy(bnn_.model)
         trace = deepcopy(bnn_.trace_)
         run_dict = dict(model=model, trace=trace,
                         ppc_train=ppc_train_, loo_train=loo_train, waic_train=waic_train)
         X_shared.set_value(X_s_test.values)
         y_shared.set_value(y_test['log10_aphy%d' %band].values)
-        ppc_test_ = bnn_.predict(likelihood_name='likelihood')
-        waic_test_ = bnn.get_waic()
+        ppc_test = bnn_.predict(likelihood_name='likelihood')
+        waic_test = bnn.get_waic()
         loo_test = bnn.get_loo()
-        run_dict.update(dict(ppc_test=ppc_test_, waic_test=waic_test, loo_test=loo_test))
+        run_dict.update(dict(ppc_test=ppc_test, waic_test=waic_test, loo_test=loo_test))
         model_dict[band]=run_dict
         with open('../PickleJar/Results/bnn_model_dict_%s.pkl' %time_stamp, 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)

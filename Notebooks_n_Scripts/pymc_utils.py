@@ -39,8 +39,14 @@ def create_smry(trc, labels, vname=['w']):
     return dfsm
 
 
-def run_model(model_type, tune_iter=10000, nuts_target_accept=0.95, compute_interactions=False):
-    with open('../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl', 'rb') as fb:
+def run_model(model_type, tune_iter=10000, nuts_target_accept=0.95,
+              compute_interactions=False, datapath=None):
+    if datapath:
+
+    else:
+        datapath = '../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl'
+
+    with open(datapath, 'rb') as fb:
         datadict = pickle.load(fb)
 
     X_s_train = datadict['x_train_s']
@@ -48,16 +54,31 @@ def run_model(model_type, tune_iter=10000, nuts_target_accept=0.95, compute_inte
     X_s_test = datadict['x_test_s']
     y_test = datadict['y_test']
 
-    if compute_interactions:
-        pass
     bands = [411, 443, 489, 510, 555, 670]
-
     # create band-keyed dictionary to contain models
     model_dict=dict.fromkeys(bands)
 
+
     # create theano shared variable
-    X_shared = shared(X_s_train.values)
-    y_shared = shared(y_train.log10_aphy411.values)
+    if compute_interactions:
+        poly_tranf = PolynomialFeatures(interaction_only=True, include_bias=False)
+
+        X_s_train_w_int = pd.DataFrame(poly_tranf.fit_transform(X_s_train),
+                                       columns=poly_tranf.get_feature_names(input_features=
+                                                                            X_s_train.columns),
+                                       index=X_s_train.index)
+        X_s_test_w_int = pd.DataFrame(poly_tranf.fit_transform(X_s_test),
+                                       columns=poly_tranf.get_feature_names(input_features=
+                                                                            X_s_train.columns),
+                                       index=X_s_test.index)
+
+        X_shared = shared(X_s_train_w_int.values)
+
+
+    else:
+        X_shared = shared(X_s_train.values)
+
+    y_shared = shared(y_train['log10_aphy%d' % bands[0]].values)
 
     for band in bands:
         logger.info("processing aphi{band}", band=band)

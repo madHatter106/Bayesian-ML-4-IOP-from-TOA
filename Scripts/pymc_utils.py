@@ -1,6 +1,7 @@
 from copy import deepcopy
 from datetime import datetime as DT
 import pickle
+import sys
 
 from loguru import logger
 from theano import shared
@@ -40,14 +41,16 @@ def create_smry(trc, labels, vname=['w']):
 
 
 def run_model(model_type, tune_iter=10000, nuts_target_accept=0.95,
-              compute_interactions=False, datapath=None):
-    if datapath:
+              compute_interactions=False, **kwargs):
 
-    else:
-        datapath = '../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl'
+    datapath = kwargs.pop('datapath', '../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl')
 
-    with open(datapath, 'rb') as fb:
-        datadict = pickle.load(fb)
+    try:
+        with open(datapath, 'rb') as fb:
+            datadict = pickle.load(fb)
+    except FileNotFoundError:
+        logger.error(f'Data file {datapath} not found')
+        sys.exit()
 
     X_s_train = datadict['x_train_s']
     y_train = datadict['y_train']

@@ -40,16 +40,15 @@ def create_smry(trc, labels, vname=['w']):
     return dfsm
 
 
-def run_model(model_type, tune_iter=10000, nuts_target_accept=0.95,
-              compute_interactions=False, **kwargs):
+def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kwargs):
 
     datapath = kwargs.pop('datapath', '../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl')
-
+    compute_interactions = kwargs.pop('compute_interactions', False)
     try:
         with open(datapath, 'rb') as fb:
             datadict = pickle.load(fb)
     except FileNotFoundError:
-        logger.error(f'Data file {datapath} not found')
+        logger_.error(f'Data file {datapath} not found')
         sys.exit()
 
     X_s_train = datadict['x_train_s']

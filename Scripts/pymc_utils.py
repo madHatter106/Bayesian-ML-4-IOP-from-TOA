@@ -3,6 +3,9 @@ from datetime import datetime as DT
 import pickle
 import sys
 
+from sklearn.preprocessing import PolynomialFeatures
+import pandas as pd
+
 from loguru import logger
 from theano import shared
 import matplotlib.pyplot as pl
@@ -75,13 +78,13 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
                                        index=X_s_test.index)
 
         X_shared = shared(X_s_train_w_int.values)
-
+        mdl_name_suffix = '_wi'
 
     else:
         X_shared = shared(X_s_train.values)
+        mdl_name_suffix = ''
 
     y_shared = shared(y_train['log10_aphy%d' % bands[0]].values)
-
     for band in bands:
         logger.info("processing aphi{band}", band=band)
         # set shared variable to training set
@@ -89,43 +92,49 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
         y_shared.set_value(y_train['log10_aphy%d' % band].values)
         my_model = PyMCModel(model_type,
                             X_shared, y_shared)
-        my_model.model.name = 'hshoe_aphy%d' %band
+        my_model.model.name = f'{my_model.model.name}{mdl_name_suffix}_aphy_{band}'
         my_model.fit(n_samples=2000, cores=4, chains=4, tune=tune_iter,
                      nuts_kwargs=dict(target_accept=0.95))
+        model_definition = deepcopy(my_model.model)
+        trace = deepcopy(my_model.trace_)
+        run_dict = dict(model=model_definition, trace=trace,)
         try:
-            ppc_train = my_model.predict(likelihood_name='likelihood')
+            ppc_train = my_model.predict()
+            run_dict.update(dict(ppc_train=ppc_train))
         except Exception as e:
             logger.error(f"{e}: failed ppc_train")
         try:
             waic_train = my_model.get_waic()
+            run_dict.update(dict(waic_train=waic_train))
         except Exception as e:
             logger.error(f"{e}: failed waic_train")
         try:
             loo_train = my_model.get_loo()
+            run_dict.update(dict(loo_train=loo_train))
         except Exception as e:
             logger.error(f"{e}: failed loo_train")
-        model_definition = deepcopy(my_model.model)
-        trace = deepcopy(my_model.trace_)
-        run_dict = dict(model=model_definition, trace=trace,
-                        ppc_train=ppc_train, loo_train=loo_train, waic_train=waic_train)
 
         # set shared variable to testing set for out-of-sample model evaluation
         X_shared.set_value(X_s_test.values)
         y_shared.set_value(y_test['log10_aphy%d' % band].values)
         try:
-            ppc_test = my_model.predict(likelihood_name='likelihood')
+            ppc_test = my_model.predict()
+            run_dict.update(dict(ppc_test=ppc_test))
         except Exception as e:
             logger.error(f"{e}: failed ppc_test")
         try:
             waic_test = my_model.get_waic()
+            run_dict.update(dict(waic_test=waic_test))
         except Exception as e:
             logger.error(f"{e}: failed waic_test")
         try:
             loo_test = my_model.get_loo()
+            run_dict.update(loo_test=loo_test)
         except Exception as e:
             logger.error(f"{e}: failed loo_test")
 
-        run_dict.update(dict(ppc_test=ppc_test, waic_test=waic_test, loo_test=loo_test))
         model_dict[band] = run_dict
-        with open('../PickleJar/Results/hshoe_model_dict_%s.pkl' %DT.now(), 'wb') as fb:
+        with open(pickle_name, 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
+
+        pickle_name = '../PickleJar/Results/model_result_%s.pkl' %DT.now()    

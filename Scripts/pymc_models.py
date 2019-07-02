@@ -29,9 +29,8 @@ class Ordered(pm.distributions.transforms.ElemwiseTransform):
 
 
 class PyMCModel:
-    def __init__(self, model, X, y, model_name='None', **model_kws):
+    def __init__(self, model, X, y, **model_kws):
         self.model = model(X, y, **model_kws)
-        self.model.name = model_name
 
     def fit(self, n_samples=2000, **sample_kws):
         with self.model:
@@ -49,9 +48,8 @@ class PyMCModel:
         if view:
             return model_graph
 
-    def predict(self, likelihood_name='likelihood', **ppc_kws):
-        ppc_ = pm.sample_ppc(self.trace_, model=self.model,
-                             **ppc_kws)[likelihood_name]
+    def predict(self, **ppc_kws):
+        ppc_ = pm.sample_ppc(self.trace_, model=self.model, **ppc_kws)
         return ppc_
 
     def get_waic(self):
@@ -238,7 +236,7 @@ def bayes_nn_model_ARD_1HL_halfNormal_hyperpriors(X, y_obs,
     return model
 
 
-def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, **kwargs):
+def hs_regression(X_, y_obs, ylabel='likelihood', tau_0=None, regularized=False, **kwargs):
     """See Piironen & Vehtari, 2017 (DOI: 10.1214/17-EJS1337SI)"""
 
     n_features = X_.eval().shape[1]
@@ -273,7 +271,7 @@ def hs_regression(X, y_obs, ylabel='likelihood', tau_0=None, regularized=False, 
 
     with model:
             bias = pm.Laplace('bias', mu=0, b=sd_bias)
-            mu_ = tt.dot(X, w) + bias
+            mu_ = tt.dot(X_, w) + bias
             sig = pm.HalfCauchy('sigma', beta=5)
             y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=y_obs)
     return model

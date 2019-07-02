@@ -236,6 +236,36 @@ def bayes_nn_model_ARD_1HL_halfNormal_hyperpriors(X, y_obs,
     return model
 
 
+def reg_hs_regression(X, y_obs, ylabel='likelihood', **kwargs):
+    """See Piironen & Vehtari, 2017 (DOI: 10.1214/17-EJS1337SI)"""
+    n_features = X_.eval().shape[1]
+    if tau_0 is None:
+        m0 = n_features/2
+        n_obs = X_.eval().shape[0]
+        tau_0 = m0 / ((n_features - m0) * np.sqrt(n_obs))
+    with pm.Model() as model:
+        tau = pm.HalfCauchy('tau', tau_0)
+        sd_bias = pm.HalfCauchy('sd_bias', beta=2.5)
+        lamb_m = pm.HalfCauchy('lambda_m', beta=1)
+        slab_scale = kwargs.pop('slab_scale', 3)
+        slab_scale_sq = slab_scale ** 2
+        slab_df = kwargs.pop('slab_df', 8)
+        half_slab_df = slab_df / 2
+        # Regularization bit
+        c_sq = pm.InverseGamma('c_sq', alpha=half_slab_df,
+                               beta=half_slab_df * slab_scale_sq)
+        lamb_m_bar = tt.sqrt(c_sq) * lamb_m / (tt.sqrt(c_sq +
+                                                       tt.pow(tau, 2) *
+                                                       tt.pow(lamb_m, 2)
+                                                      )
+                                              )
+        w = pm.Normal('w', mu=0, sd=tau*lamb_m_bar, shape=n_features)
+        bias = pm.Laplace('bias', mu=0, b=sd_bias)
+        mu_ = tt.dot(X_, w) + bias
+        sig = pm.HalfCauchy('sigma', beta=5)
+        y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=y_obs)
+        model.name = "regularized_hshoe_reg"
+
 def hs_regression(X_, y_obs, ylabel='likelihood', tau_0=None, regularized=False, **kwargs):
     """See Piironen & Vehtari, 2017 (DOI: 10.1214/17-EJS1337SI)"""
 
@@ -248,32 +278,12 @@ def hs_regression(X_, y_obs, ylabel='likelihood', tau_0=None, regularized=False,
         tau = pm.HalfCauchy('tau', tau_0)
         sd_bias = pm.HalfCauchy('sd_bias', beta=2.5)
         lamb_m = pm.HalfCauchy('lambda_m', beta=1)
-
-    if regularized:
-        model.name = "regularized_hshoe_reg"
-        slab_scale = kwargs.pop('slab_scale', 3)
-        slab_scale_sq = slab_scale ** 2
-        slab_df = kwargs.pop('slab_df', 8)
-        half_slab_df = slab_df / 2
-        with model:
-            c_sq = pm.InverseGamma('c_sq', alpha=half_slab_df,
-                                   beta=half_slab_df * slab_scale_sq)
-            lamb_m_bar = tt.sqrt(c_sq) * lamb_m / (tt.sqrt(c_sq +
-                                                           tt.pow(tau, 2) *
-                                                           tt.pow(lamb_m, 2)
-                                                          )
-                                                  )
-            w = pm.Normal('w', mu=0, sd=tau*lamb_m_bar, shape=n_features)
-    else:
+        w = pm.Normal('w', mu=0, sd=tau*lamb_m, shape=n_features)
+        bias = pm.Laplace('bias', mu=0, b=sd_bias)
+        mu_ = tt.dot(X_, w) + bias
+        sig = pm.HalfCauchy('sigma', beta=5)
+        y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=y_obs)
         model.name = "horseshoe_reg"
-        with model:
-            w = pm.Normal('w', mu=0, sd=tau*lamb_m, shape=n_features)
-
-    with model:
-            bias = pm.Laplace('bias', mu=0, b=sd_bias)
-            mu_ = tt.dot(X_, w) + bias
-            sig = pm.HalfCauchy('sigma', beta=5)
-            y = pm.Normal(ylabel, mu=mu_, sd=sig, observed=y_obs)
     return model
 
 

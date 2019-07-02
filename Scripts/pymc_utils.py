@@ -85,13 +85,15 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
         mdl_name_suffix = ''
 
     y_shared = shared(y_train['log10_aphy%d' % bands[0]].values)
+    mdl_type = None
     for band in bands:
         logger.info("processing aphi{band}", band=band)
         # set shared variable to training set
         X_shared.set_value(X_s_train.values)
         y_shared.set_value(y_train['log10_aphy%d' % band].values)
-        my_model = PyMCModel(model_type,
-                            X_shared, y_shared)
+        my_model = PyMCModel(model_type, X_shared, y_shared)
+        if mdl_type is None:
+            mdl_type = my_model.model.name
         my_model.model.name = f'{my_model.model.name}{mdl_name_suffix}_aphy_{band}'
         my_model.fit(n_samples=2000, cores=4, chains=4, tune=tune_iter,
                      nuts_kwargs=dict(target_accept=0.95))
@@ -132,9 +134,7 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
             run_dict.update(loo_test=loo_test)
         except Exception as e:
             logger.error(f"{e}: failed loo_test")
-
+        pickle_name = f'../PickleJar/Results/{mdl_type}_model_result_{DT.now()}.pkl' 
         model_dict[band] = run_dict
         with open(pickle_name, 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
-
-        pickle_name = '../PickleJar/Results/model_result_%s.pkl' %DT.now()    

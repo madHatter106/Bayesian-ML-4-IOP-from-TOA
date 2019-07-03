@@ -86,6 +86,7 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
 
     y_shared = shared(y_train['log10_aphy%d' % bands[0]].values)
     mdl_type = None
+    time_stamp = DT.now()
     for band in bands:
         logger.info("processing aphi{band}", band=band)
         # set shared variable to training set
@@ -134,7 +135,7 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
             run_dict.update(loo_test=loo_test)
         except Exception as e:
             logger.error(f"{e}: failed loo_test")
-        pickle_name = f'../PickleJar/Results/{mdl_type}_model_result_{DT.now()}.pkl' 
+        pickle_name = f'../PickleJar/Results/{mdl_type}_model_result_{time_stamp}.pkl' 
         model_dict[band] = run_dict
         with open(pickle_name, 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)

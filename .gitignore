@@ -29,3 +29,5 @@ PickleJar/Results/
 *.mat
 
 Scripts/Old/
+
+PickleJar/Interim/

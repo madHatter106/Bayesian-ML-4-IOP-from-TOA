@@ -14,15 +14,13 @@
 
 *.aux
 
-FigJar/
-
 *.odg#
 
 \.ipynb_checkpoints/
 
 __pycache__/
 
-PickleJar/Results/
+DataJar
 
 \.DS_Store
 
@@ -30,4 +28,3 @@ PickleJar/Results/
 
 Scripts/Old/
 
-PickleJar/Interim/

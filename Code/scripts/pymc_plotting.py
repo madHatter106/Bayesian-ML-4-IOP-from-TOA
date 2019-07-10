@@ -1,3 +1,29 @@
+
+from math import sqrt
+
+import numpy as np
+
+from sklearn.metrics import r2_score, mean_absolute_error
+
+import matplotlib.pyplot as pl
+from matplotlib import rcParams
+from seaborn import heatmap
+import cmocean.cm as cmo
+
+import pymc3 as pm
+
+
+
+def create_smry(trc, labels, vname=['w']):
+    ''' Conv fn: create trace summary for sorted forestplot '''
+    dfsm = pm.summary(trc, varnames=vname)
+    dfsm.rename(index={wi: lbl for wi, lbl in zip(dfsm.index, feature_labels)},
+                inplace=True)
+    #dfsm.sort_values('mean', ascending=True, inplace=True)
+    dfsm['ypos'] = np.linspace(1, 0, len(dfsm))
+    return dfsm
+
+
 def custom_forestplot(df, ax, replace_bathy=True, hpd_hi='97.5', hpd_lo='2.5'):
     ax.scatter(x=df['mean'], y=df.ypos, edgecolor='k', facecolor='white', zorder=2)
     ax.hlines(df.ypos, xmax=df['hpd_%s' % hpd_hi], xmin=df['hpd_%s' % hpd_lo],
@@ -63,3 +89,57 @@ def plot_fits_w_estimates(y_obs, ppc, ax=None, legend=False):
     if legend:
         ax.legend(loc='upper left');
     return ax
+
+
+def compute_fig_height(fig_width):
+    golden_mean = (sqrt(5)-1.0)/2.0    # Aesthetic ratio
+    return fig_width*golden_mean # height in inches
+
+
+def latexify(fig_width=None, fig_height=None, columns=1, square=False):
+    """Set up matplotlib's RC params for LaTeX plotting.
+    Call this before plotting a figure.
+
+    Parameters
+    ----------
+    fig_width : float, optional, inches
+    fig_height : float,  optional, inches
+    columns : {1, 2}
+    PNAS 1-column figure width should be 3.5"
+    PNAS 2-column wide figures should be 4.49" or 7" (??)
+    """
+
+    # code adapted from http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
+    # Width and max height in inches for IEEE journals taken from
+    # computer.org/cms/Computer.org/Journal%20templates/transactions_art_guide.pdf
+
+    assert(columns in [1,2])
+
+    if fig_width is None:
+        fig_width = 3.43 if columns==1 else 4.49 # width in inches
+
+    if fig_height is None:
+        if square:
+            fig_height = fig_width
+        else:
+            fig_height =  compute_fig_height(fig_width) # height in inches
+
+    MAX_HEIGHT_INCHES = 8.0
+    if fig_height > MAX_HEIGHT_INCHES:
+        print("WARNING: fig_height too large:" + fig_height +
+              "so will reduce to" + MAX_HEIGHT_INCHES + "inches.")
+        fig_height = MAX_HEIGHT_INCHES
+
+    params = {'backend': 'ps',
+              'text.latex.preamble': [r'\usepackage{gensymb}'],
+              'axes.labelsize': 8, # fontsize for x and y labels (was 10)
+              'axes.titlesize': 8,
+              'font.size': 8, # was 10
+              'legend.fontsize': 8, # was 10
+              'xtick.labelsize': 8,
+              'ytick.labelsize': 8,
+              'text.usetex': True,
+              'figure.figsize': [fig_width,fig_height],
+              'font.family': 'serif'
+             }
+    rcParams.update(params)

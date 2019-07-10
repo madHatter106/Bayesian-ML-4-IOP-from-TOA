@@ -10,7 +10,7 @@ from loguru import logger
 from theano import shared
 import matplotlib.pyplot as pl
 
-from pymc_models import PyMCModel
+from .pymc_models import PyMCModel
 
 
 def subset_significant_feature(trace, labels_list, alpha=0.05, vars_=None):
@@ -45,7 +45,7 @@ def create_smry(trc, labels, vname=['w']):
 
 def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kwargs):
 
-    datapath = kwargs.pop('datapath', '../PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl')
+    datapath = kwargs.pop('datapath', '../DataJar/PickleJar/DataSets/AphiTrainTestSplitDataSets.pkl')
     compute_interactions = kwargs.pop('compute_interactions', False)
     try:
         with open(datapath, 'rb') as fb:
@@ -135,7 +135,7 @@ def run_model(model_type, logger_, tune_iter=10000, nuts_target_accept=0.95,**kw
             run_dict.update(loo_test=loo_test)
         except Exception as e:
             logger.error(f"{e}: failed loo_test")
-        pickle_name = f'../PickleJar/Results/{mdl_type}_model_result_{time_stamp}.pkl' 
+        pickle_name = f'../DataJar/PickleJar/Results/{mdl_type}_model_result_{time_stamp}.pkl'
         model_dict[band] = run_dict
         with open(pickle_name, 'wb') as fb:
             pickle.dump(model_dict, fb, protocol=pickle.HIGHEST_PROTOCOL)
